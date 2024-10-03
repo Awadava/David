@@ -1,0 +1,10 @@
+import telebot
+
+API_TOKEN = '7922339683:AAEfN3fy3B7JEEdwOu4J-y18lKICQINAueU'
+bot = telebot.TeleBot(API_TOKEN)
+
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    bot.reply_to(message, "Добро пожаловать в калькулятор жаропонижающих! Перейдите по ссылке для использования: [Ваше приложение](https://ваш_пользовательский_проект.github.io/fever-calculator)")
+
+bot.polling()

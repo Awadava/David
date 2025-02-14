@@ -2,105 +2,83 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Калькулятор арбитражных ставок с кэшбэком</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор ставок</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f9f9f9;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 20px;
         }
-        h1 {
-            color: #333;
-        }
-        label {
-            display: block;
-            margin-top: 10px;
+        .container {
+            max-width: 400px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin: auto;
         }
         input {
-            padding: 5px;
-            width: 200px;
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
         }
         button {
-            margin-top: 15px;
-            padding: 8px 16px;
-            font-size: 16px;
+            background: #28a745;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
         }
         .result {
             margin-top: 20px;
-            padding: 15px;
-            background-color: #fff;
-            border: 1px solid #ccc;
-            width: 320px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <h1>Калькулятор арбитражных ставок с кэшбэком</h1>
-    <p>Введите общую сумму для ставок и коэффициенты для двух исходов:</p>
-    
-    <div>
-        <label for="totalSum">Общая сумма:</label>
-        <input type="number" id="totalSum" placeholder="Введите сумму" step="any">
-        
-        <label for="k1">Коэффициент исхода 1 (k1):</label>
-        <input type="number" id="k1" placeholder="Введите k1" step="any">
-        
-        <label for="k2">Коэффициент исхода 2 (k2):</label>
-        <input type="number" id="k2" placeholder="Введите k2" step="any">
-        
-        <button onclick="calculateBets()">Рассчитать</button>
+    <div class="container">
+        <h2>Калькулятор ставок</h2>
+        <label>Общая сумма:</label>
+        <input type="number" id="totalAmount" placeholder="Введите сумму">
+        <label>Коэффициент 1:</label>
+        <input type="number" id="odd1" placeholder="Введите коэффициент">
+        <label>Коэффициент 2:</label>
+        <input type="number" id="odd2" placeholder="Введите коэффициент">
+        <button onclick="calculate()">Рассчитать</button>
+        <div class="result">
+            <p>Ставка на исход 1: <span id="bet1">0</span></p>
+            <p>Ставка на исход 2: <span id="bet2">0</span></p>
+            <p>Прибыль при выигрыше 1: <span id="profit1">0</span></p>
+            <p>Прибыль при выигрыше 2: <span id="profit2">0</span></p>
+        </div>
     </div>
-    
-    <div class="result" id="result"></div>
-    
+
     <script>
-        function calculateBets() {
-            // Получаем введённые значения
-            var totalSum = parseFloat(document.getElementById("totalSum").value);
-            var k1 = parseFloat(document.getElementById("k1").value);
-            var k2 = parseFloat(document.getElementById("k2").value);
+        function calculate() {
+            let totalAmount = parseFloat(document.getElementById('totalAmount').value);
+            let odd1 = parseFloat(document.getElementById('odd1').value);
+            let odd2 = parseFloat(document.getElementById('odd2').value);
             
-            // Проверка корректности ввода
-            if (isNaN(totalSum)  isNaN(k1)  isNaN(k2)) {
-                document.getElementById("result").innerHTML = "<p style='color:red;'>Пожалуйста, заполните все поля корректными числами.</p>";
-                return;
-            }
-            if (k1 <= 0.1 || k2 <= 0.1) {
-                document.getElementById("result").innerHTML = "<p style='color:red;'>Коэффициенты должны быть больше 0.1 для корректных расчётов.</p>";
+            if (!totalAmount  !odd1  !odd2) {
+                alert('Введите все значения!');
                 return;
             }
             
-            // Вычисляем распределение ставок:
-            // Формулы:
-            // y = T * (k1 - 0.1) / (k1 + k2 - 0.2)
-            // x = T * (k2 - 0.1) / (k1 + k2 - 0.2)
-            var denominator = k1 + k2 - 0.2;
-            var y = totalSum * (k1 - 0.1) / denominator;
-            var x = totalSum * (k2 - 0.1) / denominator;
+            let stake1 = totalAmount / (1 + (odd1 / odd2));
+            let stake2 = totalAmount - stake1;
             
-            // Вычисляем выплаты для обоих исходов
-            // Если выигрывает исход 1: выплата = x * k1 + y * 0.1
-            // Если выигрывает исход 2: выплата = y * k2 + x * 0.1
-            var payout1 = x * k1 + y * 0.1;
-            var payout2 = y * k2 + x * 0.1;
+            let profit1 = (stake1 * odd1) - totalAmount + (stake2 * 0.1);
+            let profit2 = (stake2 * odd2) - totalAmount + (stake1 * 0.1);
             
-            var net_profit1 = payout1 - totalSum;
-            var net_profit2 = payout2 - totalSum;
-            // При оптимальном распределении чистый выигрыш должен быть равен, поэтому берём среднее
-            var net_profit = (net_profit1 + net_profit2) / 2;
-            
-            // Форматируем результаты до двух знаков после запятой
-            x = x.toFixed(2);
-            y = y.toFixed(2);
-            net_profit = net_profit.toFixed(2);
-            
-            // Выводим результаты
-            var resultHTML = "<h2>Результаты:</h2>";
-            resultHTML += "<p>Ставка на исход 1: " + x + "</p>";
-            resultHTML += "<p>Ставка на исход 2: " + y + "</p>";
-            resultHTML += "<p>Чистый выигрыш (при любом исходе): " + net_profit + "</p>";
-            
-            document.getElementById("result").innerHTML = resultHTML;
+            document.getElementById('bet1').innerText = stake1.toFixed(2);
+            document.getElementById('bet2').innerText = stake2.toFixed(2);
+            document.getElementById('profit1').innerText = profit1.toFixed(2);
+            document.getElementById('profit2').innerText = profit2.toFixed(2);
         }
     </script>
 </body>
